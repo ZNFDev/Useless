@@ -1,0 +1,22 @@
+{
+    "layout": {
+        "type": "LinearLayout",
+        "orientation": "vertical",
+        "children": [
+            {
+                "type": "TextView",
+                "text": "Hello World",
+                "id": "textView1"
+            },
+            {
+                "type": "Button",
+                "text": "Click Me",
+                "id": "button1",
+                "onClick": "handleButtonClick"
+            }
+        ]
+    },
+    "functions": {
+        "handleButtonClick": "showToast"
+    }
+}
