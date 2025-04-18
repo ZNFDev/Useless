@@ -1,1 +1,10 @@
-{"earn": false, "earnLink":"https://vnshortener.com/ugof-menu-access", "newUpdate": true, "updateLink": "https://znfdev.com/", "updateVersion": "2_release", "forceUpdate": false, "isNotice": true, "notice": "Hello %n, I've removed ads for a week"}
+{
+	"earn": true,
+	"earnLink":"https://vnshortener.com/blockymods-menu-access",
+	"newUpdate": false,
+	"updateLink": "https://znfdev.com/",
+	"updateVersion": "beta_release",
+	"forceUpdate": false,
+	"isNotice": true,
+	"notice": "Hello User, Thank You For My Mod Menu"
+}
