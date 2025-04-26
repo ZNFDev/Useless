@@ -4,7 +4,7 @@
 	"newUpdate": true,
 	"updateLink": "https://vnshortener.com/blockymods-menu",
 	"updateVersion": "beta_hotfix_release",
-	"forceUpdate": true,
+	"forceUpdate": false,
 	"isNotice": true,
 	"notice": "Hello User, I've disabled ads"
 }
