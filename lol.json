@@ -1,10 +1,10 @@
 {
-	"earn": false,
+	"earn": true,
 	"earnLink":"https://vnshortener.com/blockymods-menu-access",
 	"newUpdate": true,
 	"updateLink": "https://vnshortener.com/blockymods-menu",
 	"updateVersion": "beta_hotfix_relase",
 	"forceUpdate": true,
 	"isNotice": true,
-	"notice": "Hello User, I've disabled ads and fixed update shit, it was happening because of mispelled update version"
+	"notice": "I wonder if anybody is even using my mod menu...."
 }
