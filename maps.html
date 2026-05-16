@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Map Browser</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Inter',sans-serif;
+    background:
+        radial-gradient(circle at top left,#1f2937 0%,transparent 30%),
+        radial-gradient(circle at bottom right,#312e81 0%,transparent 30%),
+        #0b1020;
+    color:white;
+    min-height:100vh;
+    overflow-x:hidden;
+}
+
+.container{
+    width:100%;
+    max-width:1400px;
+    margin:auto;
+    padding:40px 20px;
+}
+
+.hero{
+    text-align:center;
+    margin-bottom:40px;
+}
+
+.hero h1{
+    font-size:56px;
+    font-weight:800;
+    background:linear-gradient(90deg,#60a5fa,#818cf8,#c084fc);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.hero p{
+    color:#9ca3af;
+    margin-top:12px;
+    font-size:18px;
+}
+
+.searchBox{
+    margin:35px auto;
+    max-width:700px;
+    position:relative;
+}
+
+.searchBox input{
+    width:100%;
+    padding:18px 22px;
+    border:none;
+    outline:none;
+    border-radius:18px;
+    background:rgba(255,255,255,0.06);
+    backdrop-filter:blur(10px);
+    color:white;
+    font-size:16px;
+    box-shadow:0 0 0 1px rgba(255,255,255,0.05);
+}
+
+.searchBox input::placeholder{
+    color:#9ca3af;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:24px;
+}
+
+.card{
+    position:relative;
+    overflow:hidden;
+    border-radius:24px;
+    background:rgba(255,255,255,0.06);
+    backdrop-filter:blur(14px);
+    transition:.3s ease;
+    border:1px solid rgba(255,255,255,0.08);
+}
+
+.card:hover{
+    transform:translateY(-6px) scale(1.01);
+    border-color:rgba(129,140,248,.4);
+    box-shadow:0 20px 40px rgba(0,0,0,.35);
+}
+
+.thumb{
+    width:100%;
+    height:180px;
+    background:#111827;
+    overflow:hidden;
+}
+
+.thumb img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.content{
+    padding:20px;
+}
+
+.mapId{
+    display:inline-block;
+    padding:6px 12px;
+    border-radius:999px;
+    background:rgba(129,140,248,.15);
+    color:#a5b4fc;
+    font-size:13px;
+    font-weight:600;
+    margin-bottom:14px;
+}
+
+.title{
+    font-size:22px;
+    font-weight:700;
+    margin-bottom:10px;
+}
+
+.spawn{
+    color:#9ca3af;
+    font-size:14px;
+    margin-bottom:18px;
+}
+
+.buttons{
+    display:flex;
+    gap:12px;
+}
+
+.btn{
+    flex:1;
+    text-decoration:none;
+    padding:12px;
+    border-radius:14px;
+    text-align:center;
+    font-weight:600;
+    transition:.2s;
+}
+
+.primary{
+    background:linear-gradient(90deg,#6366f1,#8b5cf6);
+    color:white;
+}
+
+.primary:hover{
+    filter:brightness(1.1);
+}
+
+.secondary{
+    background:rgba(255,255,255,0.08);
+    color:white;
+}
+
+.secondary:hover{
+    background:rgba(255,255,255,0.14);
+}
+
+.loading{
+    text-align:center;
+    color:#9ca3af;
+    margin-top:100px;
+    font-size:18px;
+}
+
+.copyToast{
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    background:#111827;
+    color:white;
+    padding:14px 18px;
+    border-radius:14px;
+    opacity:0;
+    pointer-events:none;
+    transition:.25s;
+    border:1px solid rgba(255,255,255,.08);
+}
+
+.copyToast.show{
+    opacity:1;
+    transform:translateY(-8px);
+}
+
+@media(max-width:600px){
+    .hero h1{
+        font-size:40px;
+    }
+
+    .buttons{
+        flex-direction:column;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="hero">
+        <h1>UGO Offline Maps</h1>
+        <p>Browse, preview and copy raw map URLs instantly.</p>
+    </div>
+
+    <div class="searchBox">
+        <input type="text" id="search" placeholder="Search maps..." />
+    </div>
+
+    <div id="maps" class="grid"></div>
+
+    <div id="loading" class="loading">
+        Loading maps...
+    </div>
+
+</div>
+
+<div id="toast" class="copyToast">
+    URL copied!
+</div>
+
+<script>
+const API =
+"https://raw.githubusercontent.com/Comical78/ugo-offline/refs/heads/master/files/map_index.json";
+
+const RAW_BASE =
+"https://raw.githubusercontent.com/Comical78/ugo-offline/master/files/";
+
+const mapsContainer = document.getElementById("maps");
+const loading = document.getElementById("loading");
+const searchInput = document.getElementById("search");
+const toast = document.getElementById("toast");
+
+let maps = [];
+
+function showToast(text){
+    toast.innerText = text;
+    toast.classList.add("show");
+
+    setTimeout(() => {
+        toast.classList.remove("show");
+    }, 2000);
+}
+
+function getRawMapUrl(mapId){
+    return `${RAW_BASE}${mapId}.zip`;
+}
+
+function getImage(map){
+
+    // if icon exists from old api
+    if(map.mapIcon && map.mapIcon.trim() !== ""){
+
+        // extract filename from old url
+        const fileName = map.mapIcon.split("/").pop();
+
+        // replace with github raw
+        return `${RAW_BASE}game-icons/${fileName}`;
+    }
+
+    // fallback placeholder
+    return `https://placehold.co/600x400/111827/ffffff?text=${encodeURIComponent(map.mapName)}`;
+}
+
+function render(data){
+
+    mapsContainer.innerHTML = "";
+
+    data.forEach(map => {
+
+        const rawUrl = getRawMapUrl(map.mapId);
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        card.innerHTML = `
+            <div class="thumb">
+                <img src="${getImage(map)}" alt="${map.mapName}">
+            </div>
+
+            <div class="content">
+
+                <div class="mapId">${map.mapId}</div>
+
+                <div class="title">
+                    ${map.mapName}
+                </div>
+
+                <div class="spawn">
+                    Spawn: ${map.mapSpawnPos}
+                </div>
+
+                <div class="buttons">
+                    <a class="btn primary"
+                       href="${rawUrl}"
+                       target="_blank">
+                       Open URL
+                    </a>
+
+                    <button class="btn secondary copyBtn"
+                            data-url="${rawUrl}">
+                        Copy URL
+                    </button>
+                </div>
+
+            </div>
+        `;
+
+        mapsContainer.appendChild(card);
+    });
+
+    document.querySelectorAll(".copyBtn").forEach(btn => {
+        btn.onclick = async () => {
+            await navigator.clipboard.writeText(btn.dataset.url);
+            showToast("Copied raw URL!");
+        };
+    });
+}
+
+async function loadMaps(){
+
+    try{
+
+        const res = await fetch(API);
+        maps = await res.json();
+
+        render(maps);
+
+    }catch(err){
+
+        mapsContainer.innerHTML = `
+            <div style="color:#f87171;font-size:18px;">
+                Failed to load maps.
+            </div>
+        `;
+
+        console.error(err);
+
+    }finally{
+        loading.style.display = "none";
+    }
+}
+
+searchInput.addEventListener("input", () => {
+
+    const q = searchInput.value.toLowerCase();
+
+    const filtered = maps.filter(m =>
+        m.mapName.toLowerCase().includes(q) ||
+        m.mapId.toLowerCase().includes(q)
+    );
+
+    render(filtered);
+});
+
+loadMaps();
+</script>
+
+</body>
+  </html>
+  
